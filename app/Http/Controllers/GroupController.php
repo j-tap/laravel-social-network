@@ -11,79 +11,80 @@ use Illuminate\Support\Facades\Auth;
 class GroupController extends Controller
 {
 
-    public $group;
+	public $group;
 
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-
-    public function secure($id){
-        $group = Group::find($id);
-
-        if ($group){
-            $this->group = $group;
-
-            if (!Auth::user()->hasHobby($this->group->hobby_id)) return false;
-
-            return true;
-        }
-        return false;
-    }
-
-    public function index()
-    {
-
-        $user = Auth::user();
+	public function __construct()
+	{
+		$this->middleware('auth');
+	}
 
 
-        $groups = Group::join('user_hobbies', 'user_hobbies.hobby_id', '=', 'groups.hobby_id')
-            ->where('user_hobbies.user_id', $user->id)->select('groups.*');
+	public function secure($id){
+		$group = Group::find($id);
 
-        $city = $user->location->city;
+		if ($group){
+			$this->group = $group;
+
+			if (!Auth::user()->hasHobby($this->group->hobby_id)) return false;
+
+			return true;
+		}
+		return false;
+	}
+
+	public function index()
+	{
+
+		$user = Auth::user();
 
 
-        return view('groups.index', compact('user', 'groups', 'city'));
-    }
+		$groups = Group::join('user_hobbies', 'user_hobbies.hobby_id', '=', 'groups.hobby_id')
+			->where('user_hobbies.user_id', $user->id)->select('groups.*');
+
+		$city = '';
+		if ($user->location) $city = $user->location->city;
 
 
-
-    public function group($id){
-
-        if (!$this->secure($id)) return redirect('/404');
-
-        $user = Auth::user();
-
-        $group = $this->group;
-
-        $wall = [
-            'new_post_group_id' => $group->id
-        ];
-
-        $city = $user->location->city;
-
-        return view('groups.group', compact('user', 'group', 'wall', 'city'));
-    }
+		return view('groups.index', compact('user', 'groups', 'city'));
+	}
 
 
 
-    public function stats($id){
+	public function group($id){
+
+		if (!$this->secure($id)) return redirect('/404');
+
+		$user = Auth::user();
+
+		$group = $this->group;
+
+		$wall = [
+			'new_post_group_id' => $group->id
+		];
+
+		$city = $user->location->city;
+
+		return view('groups.group', compact('user', 'group', 'wall', 'city'));
+	}
 
 
-        if (!$this->secure($id)) return redirect('/404');
 
-        $user = Auth::user();
+	public function stats($id){
 
-        $group = $this->group;
 
-        $country = $user->location->city->country;
-        $city = $user->location->city;
+		if (!$this->secure($id)) return redirect('/404');
 
-        $all_countries = $group->countAllCountries();
+		$user = Auth::user();
 
-        return view('groups.stats', compact('user', 'group', 'country', 'city', 'all_countries'));
-    }
+		$group = $this->group;
+
+		$country = $user->location->city->country;
+		$city = $user->location->city;
+
+		$all_countries = $group->countAllCountries();
+
+		return view('groups.stats', compact('user', 'group', 'country', 'city', 'all_countries'));
+	}
 
 
 
